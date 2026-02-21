@@ -198,8 +198,8 @@ export function Hero() {
             className="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto"
           >
             {[
-              { value: '50+', label: 'Projetos' },
-              { value: '100+', label: 'Membros' },
+              { value: '1', label: 'Projetos' },
+              { value: '10', label: 'Membros' },
               { value: '24/7', label: 'Suporte' }
             ].map((stat, index) => (
               <div key={index} className="relative group">
