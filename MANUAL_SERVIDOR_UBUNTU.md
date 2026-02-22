@@ -1,7 +1,7 @@
 # 🚀 Manual Completo - Deploy Terminal_404
-## Ubuntu 25.10 x64 | Frontend + Backend Juntos
+## Ubuntu 25.10 x64 | Frontend React + Backend PHP
 
-**Versão:** 2.0 - Deploy Automatizado  
+**Versão:** 3.0 - Backend PHP  
 **Data:** 22 de Fevereiro de 2026  
 **Sistema:** Ubuntu 25.10 x64
 
@@ -10,10 +10,10 @@
 ## 📋 O Que Será Instalado
 
 ✅ **Frontend React** (Vite) → Servido pelo Nginx  
-✅ **Backend FastAPI** (Python) → Proxy reverso via Nginx  
-✅ **Nginx** → Servidor web + proxy  
+✅ **Backend PHP** → API RESTful com segurança empresarial  
+✅ **Nginx** → Servidor web + proxy reverso  
+✅ **PHP-FPM** → Processamento PHP otimizado  
 ✅ **SSL/HTTPS** → Certificado Let's Encrypt  
-✅ **Systemd** → Gerenciamento automático  
 ✅ **Firewall UFW** → Segurança básica
 
 **⏱️ Tempo estimado:** 20-30 minutos
@@ -27,7 +27,7 @@ Antes de começar, tenha em mãos:
 - **IP do Servidor:** Ex: `165.227.123.45`
 - **Domínio:** Ex: `terminal404.com.br`
 - **Email:** `terminallocal404@gmail.com`
-- **Senha de App Gmail:** `ldyq ybjn wbzp afnr`
+- **Senha de App Gmail:** (Você configurará depois)
 
 ---
 
@@ -47,7 +47,7 @@ ssh root@SEU_IP_SERVIDOR
 apt update && apt upgrade -y
 
 # Instalar ferramentas básicas
-apt install -y curl wget git build-essential software-properties-common
+apt install -y curl wget git build-essential software-properties-common unzip
 
 # Reiniciar
 reboot
@@ -90,9 +90,9 @@ ssh terminal404@SEU_IP_SERVIDOR
 
 ---
 
-## ⚙️ PARTE 2: Instalação Automática das Dependências
+## ⚙️ PARTE 2: Instalação das Dependências
 
-### 2.1 - Instalar Node.js 20.x
+### 2.1 - Instalar Node.js 20.x (Frontend)
 
 ```bash
 # Adicionar repositório oficial
@@ -106,14 +106,14 @@ node --version  # Deve ser v20.x.x
 npm --version   # Deve ser 10.x.x
 ```
 
-### 2.2 - Instalar Python 3.11+
+### 2.2 - Instalar PHP 8.1+ (Backend)
 
 ```bash
-# Instalar Python
-sudo apt install -y python3 python3-pip python3-venv python3-dev
+# Instalar PHP e extensões necessárias
+sudo apt install -y php php-fpm php-cli php-mbstring php-json php-curl php-xml php-zip
 
-# Verificar
-python3 --version  # Deve ser 3.11+
+# Verificar versão
+php --version  # Deve ser 8.1 ou superior
 ```
 
 ### 2.3 - Instalar Nginx
@@ -139,13 +139,6 @@ sudo systemctl status nginx
 sudo apt install -y certbot python3-certbot-nginx
 ```
 
-### 2.5 - Instalar Ferramentas Auxiliares
-
-```bash
-# Instalar htop e psmisc (para fuser)
-sudo apt install -y htop psmisc
-```
-
 ---
 
 ## 📂 PARTE 3: Enviar Projeto para o Servidor
@@ -163,45 +156,14 @@ sudo chown -R terminal404:terminal404 /var/www/terminal404
 cd /var/www/terminal404
 ```
 
-### 3.2 - Enviar Arquivos do Projeto
-
-**OPÇÃO A: Via SCP (Do seu computador local)**
+### 3.2 - Clonar Projeto do GitHub
 
 ```bash
-# No seu computador (Linux/Mac/Windows PowerShell):
+# Clonar repositório Terminal_404
+git clone https://github.com/Terminllocal404/terminal404-Fim.git .
 
-# Criar arquivo compactado do projeto (exclui node_modules)
-cd /caminho/do/projeto
-tar --exclude='node_modules' --exclude='dist' --exclude='backend/venv' \
-    -czf terminal404.tar.gz .
-
-# Enviar para o servidor
-scp terminal404.tar.gz terminal404@SEU_IP:/var/www/terminal404/
-
-# No servidor, descompactar:
-ssh terminal404@SEU_IP
-cd /var/www/terminal404
-tar -xzf terminal404.tar.gz
-rm terminal404.tar.gz
-```
-
-**OPÇÃO B: Via Git (Recomendado)**
-
-```bash
-# No servidor:
-cd /var/www/terminal404
-
-# Clonar repositório
-git clone https://github.com/SEU_USUARIO/terminal404.git .
-
-# OU se já tem Git configurado:
-git pull origin main
-```
-
-### 3.3 - Verificar Estrutura
-
-```bash
-ls -la /var/www/terminal404
+# Verificar estrutura
+ls -la
 
 # Deve aparecer:
 # backend/
@@ -214,75 +176,57 @@ ls -la /var/www/terminal404
 
 ---
 
-## 🔧 PARTE 4: Configurar Backend Python
+## 🔧 PARTE 4: Configurar Backend PHP
 
-### 4.1 - Criar Ambiente Virtual
+### 4.1 - Configurar Permissões
 
 ```bash
 cd /var/www/terminal404/backend
 
-# Criar venv
-python3 -m venv venv
+# Criar pasta de logs
+mkdir -p logs
 
-# Ativar
-source venv/bin/activate
+# Dar permissões
+sudo chown -R www-data:www-data /var/www/terminal404/backend
+sudo chmod 755 /var/www/terminal404/backend
+sudo chmod 755 /var/www/terminal404/backend/logs
+sudo chmod 644 /var/www/terminal404/backend/*.php
 ```
 
-### 4.2 - Instalar Dependências Python
+### 4.2 - Configurar Senha do Email
 
 ```bash
-# Instalar tudo
-pip install fastapi uvicorn python-multipart pydantic[email] python-dotenv slowapi
-
-# Verificar
-pip list
+nano /var/www/terminal404/backend/config.php
 ```
 
-### 4.3 - Criar Arquivo .env
+**Encontre a linha 12 e substitua `1234567` pela sua senha de app do Gmail:**
 
-```bash
-nano /var/www/terminal404/backend/.env
+```php
+define('SMTP_PASSWORD', 'SUA_SENHA_DE_APP_AQUI');
 ```
 
-**Cole este conteúdo:**
-
-```env
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_EMAIL=terminallocal404@gmail.com
-SMTP_PASSWORD=ldyq ybjn wbzp afnr
-SMTP_RECIPIENT=terminallocal404@gmail.com
-
-# Security
-ALLOWED_ORIGINS=https://terminal404.com.br,https://www.terminal404.com.br,http://localhost:5173
-
-# Server
-HOST=0.0.0.0
-PORT=8000
-```
-
-**⚠️ IMPORTANTE:** Substitua `terminal404.com.br` pelo **seu domínio real**
+**⚠️ Como obter senha de app do Gmail:**
+1. Acesse: https://myaccount.google.com/security
+2. Ative a verificação em 2 etapas
+3. Vá em "Senhas de app"
+4. Crie uma senha para "Outro (Terminal_404)"
+5. Copie a senha gerada (16 caracteres sem espaços)
 
 **Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
 
-### 4.4 - Testar Backend (Opcional)
+### 4.3 - Testar Backend (Opcional)
 
 ```bash
-# Ativar venv
-source /var/www/terminal404/backend/venv/bin/activate
+# Testar servidor PHP local
+cd /var/www/terminal404/backend
+php -S localhost:8000
 
-# Rodar
-python main.py
-```
+# Em outro terminal SSH, testar:
+curl http://localhost:8000/api/health
 
-**Saída esperada:**
+# Deve retornar JSON com status "online"
+# Parar servidor: Ctrl + C
 ```
-🚀 Iniciando Terminal_404 API na porta 8000
-INFO:     Uvicorn running on http://0.0.0.0:8000
-```
-
-**Parar:** `Ctrl + C`
 
 ---
 
@@ -314,9 +258,19 @@ ls -la dist/
 
 ---
 
-## 🌐 PARTE 6: Configurar Nginx (Frontend + Backend Juntos)
+## 🌐 PARTE 6: Configurar Nginx (Frontend + Backend)
 
-### 6.1 - Criar Configuração
+### 6.1 - Descobrir Versão do PHP-FPM
+
+```bash
+# Ver qual versão do PHP-FPM está instalada
+ls /var/run/php/
+
+# Deve aparecer algo como: php8.1-fpm.sock ou php8.2-fpm.sock
+# Anote esta versão para usar na configuração
+```
+
+### 6.2 - Criar Configuração do Nginx
 
 ```bash
 sudo nano /etc/nginx/sites-available/terminal404
@@ -345,22 +299,23 @@ server {
         try_files $uri $uri/ /index.html;
     }
     
-    # API Backend Python (proxy reverso para porta 8000)
+    # API Backend PHP
     location /api/ {
-        proxy_pass http://127.0.0.1:8000/api/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
+        alias /var/www/terminal404/backend/;
+        try_files $uri $uri/ /backend/index.php?$args;
         
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
+        location ~ \.php$ {
+            include snippets/fastcgi-php.conf;
+            # ⚠️ ALTERE php8.1 para a versão que você viu no passo 6.1
+            fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME $request_filename;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
+        }
+    }
+    
+    # Bloquear acesso direto ao backend via URL
+    location /backend/ {
+        deny all;
     }
     
     # Segurança
@@ -376,11 +331,13 @@ server {
 }
 ```
 
-**⚠️ ALTERE:** `terminal404.com.br` para **SEU DOMÍNIO**
+**⚠️ IMPORTANTE:** 
+- Altere `terminal404.com.br` para **SEU DOMÍNIO**
+- Altere `php8.1-fpm.sock` para a **VERSÃO que você viu** no passo 6.1
 
 **Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
 
-### 6.2 - Ativar Configuração
+### 6.3 - Ativar Configuração
 
 ```bash
 # Criar link simbólico
@@ -389,17 +346,24 @@ sudo ln -s /etc/nginx/sites-available/terminal404 /etc/nginx/sites-enabled/
 # Remover config padrão
 sudo rm -f /etc/nginx/sites-enabled/default
 
-# Testar
+# Testar configuração
 sudo nginx -t
 
 # Deve aparecer:
 # nginx: configuration file /etc/nginx/nginx.conf test is successful
 ```
 
-### 6.3 - Reiniciar Nginx
+### 6.4 - Reiniciar Serviços
 
 ```bash
+# Reiniciar PHP-FPM
+sudo systemctl restart php8.1-fpm  # Use a versão correta
+
+# Reiniciar Nginx
 sudo systemctl restart nginx
+
+# Verificar status
+sudo systemctl status php8.1-fpm
 sudo systemctl status nginx
 ```
 
@@ -407,86 +371,9 @@ sudo systemctl status nginx
 
 ---
 
-## 🤖 PARTE 7: Serviço Automático (Backend)
+## 🔐 PARTE 7: SSL/HTTPS (Let's Encrypt)
 
-### 7.1 - Criar Serviço Systemd
-
-```bash
-sudo nano /etc/systemd/system/terminal404-backend.service
-```
-
-**Cole esta configuração:**
-
-```ini
-[Unit]
-Description=Terminal_404 Backend API (FastAPI)
-After=network.target
-
-[Service]
-Type=simple
-User=terminal404
-WorkingDirectory=/var/www/terminal404/backend
-Environment="PATH=/var/www/terminal404/backend/venv/bin"
-
-# Matar processos antigos na porta 8000 ANTES de iniciar
-ExecStartPre=/bin/sh -c 'fuser -k 8000/tcp || true'
-ExecStartPre=/bin/sleep 2
-
-# Iniciar o backend
-ExecStart=/var/www/terminal404/backend/venv/bin/python main.py
-
-# Reiniciar automaticamente se falhar
-Restart=always
-RestartSec=10
-
-# Logs
-StandardOutput=append:/var/log/terminal404-backend.log
-StandardError=append:/var/log/terminal404-backend-error.log
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
-
-### 7.2 - Ativar e Iniciar Serviço
-
-```bash
-# Criar arquivos de log
-sudo touch /var/log/terminal404-backend.log
-sudo touch /var/log/terminal404-backend-error.log
-sudo chown terminal404:terminal404 /var/log/terminal404-backend*.log
-
-# Recarregar systemd
-sudo systemctl daemon-reload
-
-# Ativar (inicia no boot)
-sudo systemctl enable terminal404-backend
-
-# Iniciar agora
-sudo systemctl start terminal404-backend
-
-# Verificar status
-sudo systemctl status terminal404-backend
-```
-
-**✅ Deve mostrar:** `Active: active (running)`
-
-### 7.3 - Testar API
-
-```bash
-# Testar health check
-curl http://localhost:8000/api/health
-
-# Deve retornar:
-# {"status":"online","message":"Terminal_404 API Running","timestamp":"..."}
-```
-
----
-
-## 🔐 PARTE 8: SSL/HTTPS (Let's Encrypt)
-
-### 8.1 - Configurar DNS
+### 7.1 - Configurar DNS
 
 **No painel do seu provedor de domínio (Registro.br, GoDaddy, etc.):**
 
@@ -505,7 +392,7 @@ nslookup terminal404.com.br
 # Deve retornar o IP do servidor
 ```
 
-### 8.2 - Obter Certificado SSL
+### 7.2 - Obter Certificado SSL
 
 **⚠️ SÓ EXECUTE APÓS O DNS ESTAR PROPAGADO!**
 
@@ -525,7 +412,7 @@ Successfully received certificate.
 Congratulations! You have successfully enabled HTTPS
 ```
 
-### 8.3 - Testar Renovação Automática
+### 7.3 - Testar Renovação Automática
 
 ```bash
 sudo certbot renew --dry-run
@@ -536,7 +423,7 @@ sudo certbot renew --dry-run
 
 ---
 
-## 🔥 PARTE 9: Firewall (UFW)
+## 🔥 PARTE 8: Firewall (UFW)
 
 ```bash
 # Permitir SSH
@@ -569,9 +456,9 @@ Nginx HTTPS                ALLOW       Anywhere
 
 ---
 
-## ✅ PARTE 10: Validação Final
+## ✅ PARTE 9: Validação Final
 
-### 10.1 - Checklist Completo
+### 9.1 - Checklist Completo
 
 **✅ 1. Site no ar via HTTPS:**
 ```
@@ -584,9 +471,9 @@ https://www.terminal404.com.br
 curl https://terminal404.com.br/api/health
 ```
 
-**✅ 3. Backend rodando:**
+**✅ 3. PHP-FPM rodando:**
 ```bash
-sudo systemctl status terminal404-backend
+sudo systemctl status php8.1-fpm  # Use sua versão
 # Deve estar: active (running)
 ```
 
@@ -613,28 +500,27 @@ sudo systemctl status nginx
 ### Ver Status de Tudo
 
 ```bash
-# Backend
-sudo systemctl status terminal404-backend
+# PHP-FPM
+sudo systemctl status php8.1-fpm
 
 # Nginx
 sudo systemctl status nginx
 
-# Ver portas em uso
-sudo ss -tulpn | grep -E ':(80|443|8000)'
+# Ver processos PHP
+ps aux | grep php
 ```
 
-### Logs do Backend
+### Logs do Backend PHP
 
 ```bash
-# Tempo real
-sudo tail -f /var/log/terminal404-backend.log
+# Log da API
+sudo tail -f /var/www/terminal404/backend/logs/api.log
 
-# Erros
-sudo tail -f /var/log/terminal404-backend-error.log
+# Erros do PHP
+sudo tail -f /var/www/terminal404/backend/logs/php_errors.log
 
-# Journalctl
-sudo journalctl -u terminal404-backend -f
-sudo journalctl -u terminal404-backend -n 100
+# Rate limiting
+cat /var/www/terminal404/backend/logs/rate_limits.json | python3 -m json.tool
 ```
 
 ### Logs do Nginx
@@ -650,17 +536,17 @@ sudo tail -f /var/log/nginx/terminal404_error.log
 ### Reiniciar Serviços
 
 ```bash
-# Backend
-sudo systemctl restart terminal404-backend
+# PHP-FPM
+sudo systemctl restart php8.1-fpm
 
 # Nginx
 sudo systemctl restart nginx
 
 # Ambos de uma vez
-sudo systemctl restart terminal404-backend nginx
+sudo systemctl restart php8.1-fpm nginx
 
 # Ver status
-sudo systemctl status terminal404-backend nginx
+sudo systemctl status php8.1-fpm nginx
 ```
 
 ### Atualizar o Site
@@ -681,18 +567,11 @@ npm install
 # 5. Rebuild do frontend
 npm run build
 
-# 6. Atualizar dependências Python (se houver)
-cd backend
-source venv/bin/activate
-pip install -r requirements.txt  # Se você criou requirements.txt
-deactivate
+# 6. Reiniciar serviços
+sudo systemctl restart php8.1-fpm nginx
 
-# 7. Reiniciar tudo
-sudo systemctl restart terminal404-backend
-sudo systemctl reload nginx
-
-# 8. Verificar
-sudo systemctl status terminal404-backend nginx
+# 7. Verificar
+sudo systemctl status php8.1-fpm nginx
 ```
 
 ### Backup Completo
@@ -700,7 +579,7 @@ sudo systemctl status terminal404-backend nginx
 ```bash
 # Criar backup
 cd ~
-sudo tar --exclude='node_modules' --exclude='backend/venv' --exclude='dist' \
+sudo tar --exclude='node_modules' --exclude='dist' \
   -czf terminal404-backup-$(date +%Y%m%d-%H%M%S).tar.gz /var/www/terminal404
 
 # Listar backups
@@ -708,6 +587,22 @@ ls -lh ~/terminal404-backup-*.tar.gz
 
 # Baixar para seu PC (do seu computador local):
 scp terminal404@SEU_IP:~/terminal404-backup-*.tar.gz ./
+```
+
+### Limpar Logs
+
+```bash
+# Backup dos logs
+cd /var/www/terminal404/backend/logs
+cp api.log api.log.bak
+cp php_errors.log php_errors.log.bak
+
+# Limpar logs
+> api.log
+> php_errors.log
+
+# Resetar rate limits
+echo "[]" > rate_limits.json
 ```
 
 ### Monitorar Recursos
@@ -723,29 +618,14 @@ df -h
 # Memória
 free -h
 
-# Processos do backend
-ps aux | grep python
+# Processos PHP
+ps aux | grep php
 
-# Processos do Nginx
+# Processos Nginx
 ps aux | grep nginx
-
-# Ver conexões ativas
-sudo ss -tupn | grep -E ':(80|443|8000)'
 ```
 
 ### Resolver Problemas
-
-**❌ Erro: Porta 8000 em uso**
-```bash
-# Ver o que está usando a porta
-sudo ss -tulpn | grep :8000
-
-# Matar processo específico
-sudo fuser -k 8000/tcp
-
-# Reiniciar backend
-sudo systemctl restart terminal404-backend
-```
 
 **❌ Site não carrega**
 ```bash
@@ -756,24 +636,34 @@ sudo systemctl restart nginx
 
 **❌ Erro 502 Bad Gateway**
 ```bash
-# Backend provavelmente está parado
-sudo systemctl status terminal404-backend
-sudo journalctl -u terminal404-backend -n 50
-sudo systemctl restart terminal404-backend
+# PHP-FPM provavelmente está parado
+sudo systemctl status php8.1-fpm
+sudo systemctl restart php8.1-fpm
+```
+
+**❌ API retorna 404**
+```bash
+# Verificar configuração do Nginx
+sudo nginx -t
+
+# Verificar permissões do backend
+ls -la /var/www/terminal404/backend/
+
+# Deve mostrar www-data como dono
 ```
 
 **❌ Formulários não enviam**
 ```bash
 # Verificar logs
-sudo tail -f /var/log/terminal404-backend.log
+sudo tail -f /var/www/terminal404/backend/logs/api.log
 
-# Verificar .env
-cat /var/www/terminal404/backend/.env
+# Verificar senha de email
+grep SMTP_PASSWORD /var/www/terminal404/backend/config.php
 
 # Testar API manualmente
 curl -X POST https://terminal404.com.br/api/contact \
   -H "Content-Type: application/json" \
-  -d '{"name":"Teste","email":"teste@example.com","message":"Teste"}'
+  -d '{"name":"Teste","email":"teste@example.com","message":"Teste de mensagem com mais de 10 caracteres"}'
 ```
 
 **❌ SSL não funciona**
@@ -784,6 +674,15 @@ sudo systemctl reload nginx
 
 # Ver certificados instalados
 sudo certbot certificates
+```
+
+**❌ Permissões negadas**
+```bash
+# Corrigir permissões do backend
+sudo chown -R www-data:www-data /var/www/terminal404/backend
+sudo chmod 755 /var/www/terminal404/backend
+sudo chmod 755 /var/www/terminal404/backend/logs
+sudo chmod 644 /var/www/terminal404/backend/*.php
 ```
 
 ---
@@ -822,26 +721,19 @@ npm install || { echo -e "${RED}❌ Erro ao instalar dependências${NC}"; exit 1
 echo "🔨 Fazendo build do frontend..."
 npm run build || { echo -e "${RED}❌ Erro ao fazer build${NC}"; exit 1; }
 
-# 3. Backend (se houver requirements.txt)
-if [ -f backend/requirements.txt ]; then
-    echo "🐍 Atualizando dependências do backend..."
-    cd backend
-    source venv/bin/activate
-    pip install -r requirements.txt
-    deactivate
-    cd ..
-fi
+# 3. Backend PHP - Corrigir permissões
+echo "🔧 Corrigindo permissões do backend..."
+sudo chown -R www-data:www-data /var/www/terminal404/backend
+sudo chmod 755 /var/www/terminal404/backend/logs
 
 # 4. Reiniciar serviços
-echo "🔄 Reiniciando backend..."
-sudo systemctl restart terminal404-backend
-
-echo "🔄 Recarregando Nginx..."
+echo "🔄 Reiniciando serviços..."
+sudo systemctl restart php8.1-fpm
 sudo systemctl reload nginx
 
 # 5. Verificar status
 echo "✅ Verificando serviços..."
-sudo systemctl is-active --quiet terminal404-backend && echo -e "${GREEN}✅ Backend OK${NC}" || echo -e "${RED}❌ Backend FALHOU${NC}"
+sudo systemctl is-active --quiet php8.1-fpm && echo -e "${GREEN}✅ PHP-FPM OK${NC}" || echo -e "${RED}❌ PHP-FPM FALHOU${NC}"
 sudo systemctl is-active --quiet nginx && echo -e "${GREEN}✅ Nginx OK${NC}" || echo -e "${RED}❌ Nginx FALHOU${NC}"
 
 echo -e "${GREEN}🎉 Deploy concluído!${NC}"
@@ -870,17 +762,23 @@ cd /var/www/terminal404
 
 ### ✅ Serviços Rodando:
 - ✅ Frontend React (Nginx)
-- ✅ Backend FastAPI (Systemd)
+- ✅ Backend PHP (PHP-FPM)
 - ✅ SSL/HTTPS (Let's Encrypt)
 - ✅ Firewall (UFW)
 
 ### 🔄 Automático:
-- ✅ Backend inicia no boot
+- ✅ PHP-FPM inicia no boot
 - ✅ Nginx inicia no boot
 - ✅ SSL renova automaticamente
-- ✅ Processos antigos são mortos antes de reiniciar
+
+### 🔐 Segurança:
+- ✅ Rate limiting ativo
+- ✅ Sanitização de dados
+- ✅ Validação de inputs
+- ✅ Headers de segurança
+- ✅ Logs de auditoria
 
 ---
 
 **Desenvolvido por Terminal_404**  
-**Manual v2.0** | Ubuntu 25.10 x64 | 22/02/2026
+**Manual v3.0** | Ubuntu 25.10 x64 | Backend PHP | 22/02/2026
