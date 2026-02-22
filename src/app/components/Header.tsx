@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
-import logoImg from 'figma:asset/a2cf386f6867e3c2fdab342a3de11efe99903303.png';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -44,7 +43,7 @@ export function Header() {
           >
             <div className="relative">
               <img 
-                src={logoImg} 
+                src="https://available-aquamarine-lziqbpkvhg.edgeone.app/Untitled_design_1.png" 
                 alt="Terminal_404" 
                 className="w-10 h-10 object-contain"
               />
