@@ -1,262 +1,207 @@
-# 🖥️ Manual de Instalação e Configuração do Servidor
-## Terminal_404 - Ubuntu 25.10 x64
+# 🚀 Manual Completo - Deploy Terminal_404
+## Ubuntu 25.10 x64 | Frontend + Backend Juntos
 
-**Sistema Operacional:** Ubuntu 25.10 x64  
-**Versão do Manual:** 1.0  
+**Versão:** 2.0 - Deploy Automatizado  
 **Data:** 22 de Fevereiro de 2026  
+**Sistema:** Ubuntu 25.10 x64
 
 ---
 
-## 📋 Índice
+## 📋 O Que Será Instalado
 
-1. [Informações Importantes](#1-informações-importantes)
-2. [Acesso Inicial ao Servidor](#2-acesso-inicial-ao-servidor)
-3. [Configuração de Segurança Básica](#3-configuração-de-segurança-básica)
-4. [Instalação das Dependências](#4-instalação-das-dependências)
-5. [Enviar Projeto para o Servidor](#5-enviar-projeto-para-o-servidor)
-6. [Configurar Backend Python (FastAPI)](#6-configurar-backend-python-fastapi)
-7. [Configurar Frontend React (Build)](#7-configurar-frontend-react-build)
-8. [Configurar Nginx (Servidor Web)](#8-configurar-nginx-servidor-web)
-9. [Configurar DNS e SSL/HTTPS](#9-configurar-dns-e-ssl-https)
-10. [Serviço Automático para o Backend](#10-serviço-automático-para-o-backend)
-11. [Configurar Firewall](#11-configurar-firewall)
-12. [Validação Final](#12-validação-final)
-13. [Comandos de Manutenção](#13-comandos-de-manutenção)
+✅ **Frontend React** (Vite) → Servido pelo Nginx  
+✅ **Backend FastAPI** (Python) → Proxy reverso via Nginx  
+✅ **Nginx** → Servidor web + proxy  
+✅ **SSL/HTTPS** → Certificado Let's Encrypt  
+✅ **Systemd** → Gerenciamento automático  
+✅ **Firewall UFW** → Segurança básica
+
+**⏱️ Tempo estimado:** 20-30 minutos
 
 ---
 
-## 1. Informações Importantes
+## 🎯 Informações Necessárias
 
-### ✅ Pré-requisitos:
+Antes de começar, tenha em mãos:
 
-- Servidor Ubuntu 25.10 x64 (DigitalOcean, AWS, Azure, etc.)
-- Acesso root via SSH
-- IP público do servidor
-- Domínio registrado (ex: `terminal404.com.br`)
-- Email Gmail configurado: `terminallocal404@gmail.com`
-- Senha de app do Gmail: `ldyq ybjn wbzp afnr`
-
-### 📦 O que será instalado:
-
-- **Node.js 20.x** (Frontend React)
-- **Python 3.11+** (Backend FastAPI)
-- **Nginx** (Servidor web e proxy reverso)
-- **Certbot** (Certificado SSL gratuito)
-- **UFW** (Firewall)
-
-### ⏱️ Tempo estimado: 30-45 minutos
+- **IP do Servidor:** Ex: `165.227.123.45`
+- **Domínio:** Ex: `terminal404.com.br`
+- **Email:** `terminallocal404@gmail.com`
+- **Senha de App Gmail:** `ldyq ybjn wbzp afnr`
 
 ---
 
-## 2. Acesso Inicial ao Servidor
+## 📦 PARTE 1: Preparação do Servidor
 
-### Passo 2.1: Conectar via SSH
+### 1.1 - Conectar ao Servidor
 
-**No Linux/Mac:**
 ```bash
-ssh root@SEU_IP_SERVIDOR
-# Exemplo: ssh root@165.227.123.45
-```
-
-**No Windows (PowerShell):**
-```powershell
+# Conectar via SSH como root
 ssh root@SEU_IP_SERVIDOR
 ```
 
-**No Windows (PuTTY):**
-- Host Name: `SEU_IP_SERVIDOR`
-- Port: `22`
-- Connection Type: `SSH`
-- Username: `root`
-
-### Passo 2.2: Atualizar o Sistema
+### 1.2 - Atualizar Sistema
 
 ```bash
-# Atualizar repositórios
-apt update
+# Atualizar tudo
+apt update && apt upgrade -y
 
-# Atualizar todos os pacotes
-apt upgrade -y
-
-# Instalar pacotes essenciais
+# Instalar ferramentas básicas
 apt install -y curl wget git build-essential software-properties-common
 
-# Reiniciar o servidor
+# Reiniciar
 reboot
 ```
 
-⏱️ **Aguarde 1-2 minutos e reconecte via SSH**
-
----
-
-## 3. Configuração de Segurança Básica
-
-### Passo 3.1: Criar Usuário Não-Root
+⏱️ **Aguarde 1-2 minutos e reconecte:**
 
 ```bash
-# Criar usuário para a aplicação
-adduser terminal404
-# Digite uma senha forte e pressione Enter nas demais perguntas
+ssh root@SEU_IP_SERVIDOR
+```
 
-# Adicionar ao grupo sudo
+### 1.3 - Criar Usuário para a Aplicação
+
+```bash
+# Criar usuário
+adduser terminal404
+# Digite uma senha forte
+
+# Adicionar ao sudo
 usermod -aG sudo terminal404
 
-# Testar sudo
+# Testar
 su - terminal404
 sudo ls /root
 # Digite a senha do usuário terminal404
-# Se listar arquivos, está OK
 ```
 
-### Passo 3.2: Configurar SSH Básico
+✅ **Se listou os arquivos, está OK!**
 
 ```bash
 # Voltar para root
 exit
-
-# Permitir SSH para o novo usuário
-echo "AllowUsers root terminal404" >> /etc/ssh/sshd_config
-
-# Reiniciar SSH
-systemctl restart ssh
-```
-
-### Passo 3.3: Logar com o Novo Usuário
-
-```bash
-# Sair do root
 exit
 
 # Conectar com o novo usuário
 ssh terminal404@SEU_IP_SERVIDOR
 ```
 
-**✅ A partir de agora, use sempre o usuário `terminal404`**
+**✅ A partir de agora, use SEMPRE o usuário `terminal404`**
 
 ---
 
-## 4. Instalação das Dependências
+## ⚙️ PARTE 2: Instalação Automática das Dependências
 
-### Passo 4.1: Instalar Node.js 20.x
+### 2.1 - Instalar Node.js 20.x
 
 ```bash
-# Adicionar repositório oficial do Node.js
+# Adicionar repositório oficial
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 
-# Instalar Node.js e npm
+# Instalar Node.js
 sudo apt install -y nodejs
 
-# Verificar versão
-node --version
-# Saída esperada: v20.x.x
-
-npm --version
-# Saída esperada: 10.x.x
+# Verificar
+node --version  # Deve ser v20.x.x
+npm --version   # Deve ser 10.x.x
 ```
 
-### Passo 4.2: Instalar Python 3.11+
+### 2.2 - Instalar Python 3.11+
 
 ```bash
-# Instalar Python 3 e ferramentas
+# Instalar Python
 sudo apt install -y python3 python3-pip python3-venv python3-dev
 
-# Verificar versão
-python3 --version
-# Saída esperada: Python 3.11 ou superior
-
-pip3 --version
+# Verificar
+python3 --version  # Deve ser 3.11+
 ```
 
-### Passo 4.3: Instalar Nginx
+### 2.3 - Instalar Nginx
 
 ```bash
-# Instalar Nginx
+# Instalar
 sudo apt install -y nginx
 
-# Iniciar e habilitar Nginx
+# Iniciar
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
-# Verificar status
+# Verificar
 sudo systemctl status nginx
 # Pressione 'q' para sair
 ```
 
-**✅ Teste:** Acesse `http://SEU_IP_SERVIDOR` no navegador  
-Deve aparecer: "Welcome to nginx!"
+✅ **Teste:** Acesse `http://SEU_IP` no navegador → Deve aparecer "Welcome to nginx!"
 
-### Passo 4.4: Instalar Certbot (SSL)
+### 2.4 - Instalar Certbot (SSL)
 
 ```bash
-# Instalar Certbot
 sudo apt install -y certbot python3-certbot-nginx
+```
+
+### 2.5 - Instalar Ferramentas Auxiliares
+
+```bash
+# Instalar htop e psmisc (para fuser)
+sudo apt install -y htop psmisc
 ```
 
 ---
 
-## 5. Enviar Projeto para o Servidor
+## 📂 PARTE 3: Enviar Projeto para o Servidor
 
-### Passo 5.1: Criar Estrutura de Diretórios
+### 3.1 - Criar Estrutura de Diretórios
 
 ```bash
-# Criar diretório do projeto
+# Criar diretório
 sudo mkdir -p /var/www/terminal404
 
-# Dar permissão ao usuário
+# Dar permissão
 sudo chown -R terminal404:terminal404 /var/www/terminal404
 
-# Navegar para o diretório
+# Navegar
 cd /var/www/terminal404
 ```
 
-### Passo 5.2: Enviar Arquivos do Projeto
+### 3.2 - Enviar Arquivos do Projeto
 
-**Opção A: Upload via SCP (Do seu computador local)**
+**OPÇÃO A: Via SCP (Do seu computador local)**
 
 ```bash
 # No seu computador (Linux/Mac/Windows PowerShell):
 
-# Enviar backend
-scp -r ./backend terminal404@SEU_IP:/var/www/terminal404/
+# Criar arquivo compactado do projeto (exclui node_modules)
+cd /caminho/do/projeto
+tar --exclude='node_modules' --exclude='dist' --exclude='backend/venv' \
+    -czf terminal404.tar.gz .
 
-# Enviar frontend
-scp -r ./src terminal404@SEU_IP:/var/www/terminal404/
+# Enviar para o servidor
+scp terminal404.tar.gz terminal404@SEU_IP:/var/www/terminal404/
 
-# Enviar arquivos de configuração
-scp package.json terminal404@SEU_IP:/var/www/terminal404/
-scp package-lock.json terminal404@SEU_IP:/var/www/terminal404/
-scp vite.config.ts terminal404@SEU_IP:/var/www/terminal404/
-scp tsconfig.json terminal404@SEU_IP:/var/www/terminal404/
-scp tsconfig.app.json terminal404@SEU_IP:/var/www/terminal404/
-scp tsconfig.node.json terminal404@SEU_IP:/var/www/terminal404/
-scp index.html terminal404@SEU_IP:/var/www/terminal404/
-
-# Enviar imports (se houver)
-scp -r ./src/imports terminal404@SEU_IP:/var/www/terminal404/src/
-scp -r ./src/styles terminal404@SEU_IP:/var/www/terminal404/src/
+# No servidor, descompactar:
+ssh terminal404@SEU_IP
+cd /var/www/terminal404
+tar -xzf terminal404.tar.gz
+rm terminal404.tar.gz
 ```
 
-**Opção B: Usando Git (Recomendado)**
+**OPÇÃO B: Via Git (Recomendado)**
 
 ```bash
 # No servidor:
 cd /var/www/terminal404
 
-# Se você tem repositório GitHub/GitLab
+# Clonar repositório
 git clone https://github.com/SEU_USUARIO/terminal404.git .
 
-# Ou inicializar Git e configurar
-git init
-git remote add origin https://github.com/SEU_USUARIO/terminal404.git
+# OU se já tem Git configurado:
 git pull origin main
 ```
 
-### Passo 5.3: Verificar Estrutura
+### 3.3 - Verificar Estrutura
 
 ```bash
-# Verificar arquivos enviados
-cd /var/www/terminal404
-ls -la
+ls -la /var/www/terminal404
 
 # Deve aparecer:
 # backend/
@@ -269,41 +214,37 @@ ls -la
 
 ---
 
-## 6. Configurar Backend Python (FastAPI)
+## 🔧 PARTE 4: Configurar Backend Python
 
-### Passo 6.1: Criar Ambiente Virtual Python
+### 4.1 - Criar Ambiente Virtual
 
 ```bash
-# Navegar para o backend
 cd /var/www/terminal404/backend
 
-# Criar ambiente virtual
+# Criar venv
 python3 -m venv venv
 
-# Ativar ambiente virtual
+# Ativar
 source venv/bin/activate
-
-# Seu prompt deve mudar para: (venv) terminal404@...
 ```
 
-### Passo 6.2: Instalar Dependências Python
+### 4.2 - Instalar Dependências Python
 
 ```bash
-# Instalar todas as dependências
+# Instalar tudo
 pip install fastapi uvicorn python-multipart pydantic[email] python-dotenv slowapi
 
-# Verificar instalação
+# Verificar
 pip list
 ```
 
-### Passo 6.3: Configurar Variáveis de Ambiente
+### 4.3 - Criar Arquivo .env
 
 ```bash
-# Criar arquivo .env
 nano /var/www/terminal404/backend/.env
 ```
 
-**Cole o seguinte conteúdo:**
+**Cole este conteúdo:**
 
 ```env
 # Email Configuration
@@ -321,102 +262,51 @@ HOST=0.0.0.0
 PORT=8000
 ```
 
+**⚠️ IMPORTANTE:** Substitua `terminal404.com.br` pelo **seu domínio real**
+
 **Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
 
-### Passo 6.4: Testar o Backend
+### 4.4 - Testar Backend (Opcional)
 
 ```bash
-# Ativar ambiente virtual (se não estiver)
+# Ativar venv
 source /var/www/terminal404/backend/venv/bin/activate
 
-# Rodar servidor
+# Rodar
 python main.py
 ```
 
 **Saída esperada:**
 ```
-INFO:     Started server process
+🚀 Iniciando Terminal_404 API na porta 8000
 INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-**Testar em outro terminal SSH:**
-```bash
-# Abrir nova conexão SSH
-ssh terminal404@SEU_IP_SERVIDOR
-
-# Testar API
-curl http://localhost:8000/api/health
-
-# Deve retornar:
-# {"status":"online","message":"Terminal_404 API Running"}
-```
-
-**Parar o servidor:** Volte ao terminal anterior e pressione `Ctrl + C`
+**Parar:** `Ctrl + C`
 
 ---
 
-## 7. Configurar Frontend React (Build)
+## 🎨 PARTE 5: Configurar Frontend React
 
-### Passo 7.1: Instalar Dependências Node.js
+### 5.1 - Instalar Dependências
 
 ```bash
-# Navegar para o diretório principal
 cd /var/www/terminal404
-
-# Instalar dependências
 npm install
 ```
 
-### Passo 7.2: Atualizar URLs da API
-
-**Editar ContactPage.tsx:**
-```bash
-nano /var/www/terminal404/src/app/pages/ContactPage.tsx
-```
-
-**Encontre a linha 35 e altere:**
-```typescript
-// DE:
-const response = await fetch('http://localhost:8000/api/contact', {
-
-// PARA:
-const response = await fetch('/api/contact', {
-```
-
-**Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
-
-**Editar RequestPage.tsx:**
-```bash
-nano /var/www/terminal404/src/app/pages/RequestPage.tsx
-```
-
-**Encontre a linha 56 e altere:**
-```typescript
-// DE:
-const response = await fetch('http://localhost:8000/api/project-request', {
-
-// PARA:
-const response = await fetch('/api/project-request', {
-```
-
-**Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
-
-### Passo 7.3: Fazer Build de Produção
+### 5.2 - Fazer Build de Produção
 
 ```bash
-# Navegar para o diretório principal
-cd /var/www/terminal404
-
-# Fazer build
 npm run build
 ```
 
-**✅ Se tudo correr bem:**
+**✅ Saída esperada:**
 ```
 ✓ built in 15s
 ```
 
-**Verificar pasta dist criada:**
+**Verificar:**
 ```bash
 ls -la dist/
 # Deve mostrar: index.html, assets/, etc.
@@ -424,23 +314,22 @@ ls -la dist/
 
 ---
 
-## 8. Configurar Nginx (Servidor Web)
+## 🌐 PARTE 6: Configurar Nginx (Frontend + Backend Juntos)
 
-### Passo 8.1: Criar Configuração do Site
+### 6.1 - Criar Configuração
 
 ```bash
-# Criar arquivo de configuração
 sudo nano /etc/nginx/sites-available/terminal404
 ```
 
-**Cole a seguinte configuração:**
+**Cole esta configuração:**
 
 ```nginx
 server {
     listen 80;
     listen [::]:80;
     
-    # Altere para seu domínio
+    # ⚠️ ALTERE PARA SEU DOMÍNIO
     server_name terminal404.com.br www.terminal404.com.br;
     
     # Logs
@@ -451,12 +340,12 @@ server {
     root /var/www/terminal404/dist;
     index index.html;
     
-    # Servir frontend
+    # Servir frontend (SPA - Single Page Application)
     location / {
         try_files $uri $uri/ /index.html;
     }
     
-    # API Backend Python (proxy reverso)
+    # API Backend Python (proxy reverso para porta 8000)
     location /api/ {
         proxy_pass http://127.0.0.1:8000/api/;
         proxy_http_version 1.1;
@@ -487,124 +376,46 @@ server {
 }
 ```
 
-**⚠️ IMPORTANTE:** Altere `terminal404.com.br` para o **seu domínio real**
+**⚠️ ALTERE:** `terminal404.com.br` para **SEU DOMÍNIO**
 
 **Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
 
-### Passo 8.2: Ativar Configuração
+### 6.2 - Ativar Configuração
 
 ```bash
 # Criar link simbólico
 sudo ln -s /etc/nginx/sites-available/terminal404 /etc/nginx/sites-enabled/
 
-# Remover configuração padrão
+# Remover config padrão
 sudo rm -f /etc/nginx/sites-enabled/default
 
-# Testar configuração
+# Testar
 sudo nginx -t
 
 # Deve aparecer:
 # nginx: configuration file /etc/nginx/nginx.conf test is successful
 ```
 
-### Passo 8.3: Reiniciar Nginx
+### 6.3 - Reiniciar Nginx
 
 ```bash
-# Reiniciar Nginx
 sudo systemctl restart nginx
-
-# Verificar status
 sudo systemctl status nginx
 ```
 
-**✅ Teste:** Acesse `http://SEU_IP_SERVIDOR` no navegador  
-Deve aparecer o site Terminal_404
+✅ **Teste:** Acesse `http://SEU_IP` → Deve aparecer o site Terminal_404
 
 ---
 
-## 9. Configurar DNS e SSL/HTTPS
+## 🤖 PARTE 7: Serviço Automático (Backend)
 
-### Passo 9.1: Configurar DNS
-
-**No painel do seu provedor de domínio (Registro.br, GoDaddy, etc.):**
-
-Adicione os seguintes registros DNS:
-
-| Tipo | Nome/Host | Valor/IP | TTL |
-|------|-----------|----------|-----|
-| A | @ | SEU_IP_SERVIDOR | 3600 |
-| A | www | SEU_IP_SERVIDOR | 3600 |
-
-**Exemplo:**
-```
-Tipo: A
-Nome: @
-Valor: 165.227.123.45
-TTL: 3600
-
-Tipo: A
-Nome: www
-Valor: 165.227.123.45
-TTL: 3600
-```
-
-**⏱️ Aguarde 5-30 minutos para propagação DNS**
-
-**Testar propagação:**
-```bash
-# No servidor ou no seu computador
-nslookup terminal404.com.br
-nslookup www.terminal404.com.br
-
-# Deve retornar o IP do seu servidor
-```
-
-### Passo 9.2: Obter Certificado SSL (Let's Encrypt)
-
-**⚠️ Só execute após o DNS estar propagado!**
+### 7.1 - Criar Serviço Systemd
 
 ```bash
-# Obter certificado SSL gratuito
-sudo certbot --nginx -d terminal404.com.br -d www.terminal404.com.br
-```
-
-**Perguntas que aparecerão:**
-
-1. **Email:** Digite `terminallocal404@gmail.com`
-2. **Termos de serviço:** Digite `A` (Agree)
-3. **Compartilhar email:** Digite `N` (No)
-4. **Redirect HTTP → HTTPS:** Digite `2` (Redirect)
-
-**✅ Se tudo correr bem:**
-```
-Successfully received certificate.
-Congratulations! You have successfully enabled HTTPS on https://terminal404.com.br
-```
-
-### Passo 9.3: Testar Renovação Automática
-
-```bash
-# Testar renovação (não renova de verdade, apenas testa)
-sudo certbot renew --dry-run
-
-# Deve aparecer:
-# Congratulations, all simulated renewals succeeded
-```
-
-**✅ O Certbot já configura renovação automática!**
-
----
-
-## 10. Serviço Automático para o Backend
-
-### Passo 10.1: Criar Serviço Systemd
-
-```bash
-# Criar arquivo de serviço
 sudo nano /etc/systemd/system/terminal404-backend.service
 ```
 
-**Cole a seguinte configuração:**
+**Cole esta configuração:**
 
 ```ini
 [Unit]
@@ -617,7 +428,7 @@ User=terminal404
 WorkingDirectory=/var/www/terminal404/backend
 Environment="PATH=/var/www/terminal404/backend/venv/bin"
 
-# Matar processos antigos na porta 8000 antes de iniciar
+# Matar processos antigos na porta 8000 ANTES de iniciar
 ExecStartPre=/bin/sh -c 'fuser -k 8000/tcp || true'
 ExecStartPre=/bin/sleep 2
 
@@ -638,7 +449,7 @@ WantedBy=multi-user.target
 
 **Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
 
-### Passo 10.2: Ativar e Iniciar Serviço
+### 7.2 - Ativar e Iniciar Serviço
 
 ```bash
 # Criar arquivos de log
@@ -649,10 +460,10 @@ sudo chown terminal404:terminal404 /var/log/terminal404-backend*.log
 # Recarregar systemd
 sudo systemctl daemon-reload
 
-# Ativar serviço (inicia automaticamente no boot)
+# Ativar (inicia no boot)
 sudo systemctl enable terminal404-backend
 
-# Iniciar serviço agora
+# Iniciar agora
 sudo systemctl start terminal404-backend
 
 # Verificar status
@@ -661,22 +472,74 @@ sudo systemctl status terminal404-backend
 
 **✅ Deve mostrar:** `Active: active (running)`
 
-**Testar API:**
+### 7.3 - Testar API
+
 ```bash
-curl https://terminal404.com.br/api/health
+# Testar health check
+curl http://localhost:8000/api/health
 
 # Deve retornar:
-# {"status":"online","message":"Terminal_404 API Running"}
+# {"status":"online","message":"Terminal_404 API Running","timestamp":"..."}
 ```
 
 ---
 
-## 11. Configurar Firewall
+## 🔐 PARTE 8: SSL/HTTPS (Let's Encrypt)
 
-### Passo 11.1: Configurar UFW
+### 8.1 - Configurar DNS
+
+**No painel do seu provedor de domínio (Registro.br, GoDaddy, etc.):**
+
+Adicione estes registros DNS:
+
+| Tipo | Nome | Valor | TTL |
+|------|------|-------|-----|
+| A | @ | SEU_IP_SERVIDOR | 3600 |
+| A | www | SEU_IP_SERVIDOR | 3600 |
+
+**⏱️ Aguarde 5-30 minutos para propagação**
+
+**Testar propagação:**
+```bash
+nslookup terminal404.com.br
+# Deve retornar o IP do servidor
+```
+
+### 8.2 - Obter Certificado SSL
+
+**⚠️ SÓ EXECUTE APÓS O DNS ESTAR PROPAGADO!**
 
 ```bash
-# Permitir SSH (IMPORTANTE! Não se tranque fora)
+sudo certbot --nginx -d terminal404.com.br -d www.terminal404.com.br
+```
+
+**Perguntas:**
+1. **Email:** `terminallocal404@gmail.com`
+2. **Termos:** `A` (Agree)
+3. **Compartilhar email:** `N` (No)
+4. **Redirect HTTP → HTTPS:** `2` (Yes, redirect)
+
+**✅ Saída esperada:**
+```
+Successfully received certificate.
+Congratulations! You have successfully enabled HTTPS
+```
+
+### 8.3 - Testar Renovação Automática
+
+```bash
+sudo certbot renew --dry-run
+
+# Deve aparecer:
+# Congratulations, all simulated renewals succeeded
+```
+
+---
+
+## 🔥 PARTE 9: Firewall (UFW)
+
+```bash
+# Permitir SSH
 sudo ufw allow OpenSSH
 
 # Permitir HTTP
@@ -685,15 +548,11 @@ sudo ufw allow 'Nginx HTTP'
 # Permitir HTTPS
 sudo ufw allow 'Nginx HTTPS'
 
-# Ativar firewall
+# Ativar
 sudo ufw enable
-
 # Confirme: y
-```
 
-### Passo 11.2: Verificar Firewall
-
-```bash
+# Verificar
 sudo ufw status verbose
 ```
 
@@ -710,75 +569,82 @@ Nginx HTTPS                ALLOW       Anywhere
 
 ---
 
-## 12. Validação Final
+## ✅ PARTE 10: Validação Final
 
-### ✅ Checklist de Verificação:
+### 10.1 - Checklist Completo
 
-**1. Site acessível via HTTPS:**
-```bash
-# Teste no navegador:
+**✅ 1. Site no ar via HTTPS:**
+```
 https://terminal404.com.br
 https://www.terminal404.com.br
 ```
 
-**2. Redirecionamento HTTP → HTTPS:**
-```bash
-# http:// deve redirecionar para https://
-http://terminal404.com.br
-```
-
-**3. API funcionando:**
+**✅ 2. API funcionando:**
 ```bash
 curl https://terminal404.com.br/api/health
 ```
 
-**4. Backend rodando automaticamente:**
+**✅ 3. Backend rodando:**
 ```bash
 sudo systemctl status terminal404-backend
 # Deve estar: active (running)
 ```
 
-**5. Nginx rodando:**
+**✅ 4. Nginx rodando:**
 ```bash
 sudo systemctl status nginx
 # Deve estar: active (running)
 ```
 
-**6. Testar Formulário de Contato:**
+**✅ 5. Testar Formulário de Contato:**
 - Acesse: `https://terminal404.com.br/contato`
 - Preencha e envie
-- Verifique email em `terminallocal404@gmail.com`
+- Verifique email: `terminallocal404@gmail.com`
 
-**7. Testar Formulário de Solicitação:**
+**✅ 6. Testar Formulário de Solicitação:**
 - Acesse: `https://terminal404.com.br/solicitacao`
 - Preencha e envie
-- Verifique email em `terminallocal404@gmail.com`
+- Verifique email: `terminallocal404@gmail.com`
 
 ---
 
-## 13. Comandos de Manutenção
+## 🛠️ COMANDOS DE MANUTENÇÃO
 
-### Ver Logs do Backend
+### Ver Status de Tudo
 
 ```bash
-# Logs em tempo real
-sudo journalctl -u terminal404-backend -f
+# Backend
+sudo systemctl status terminal404-backend
 
-# Últimas 100 linhas
-sudo journalctl -u terminal404-backend -n 100
+# Nginx
+sudo systemctl status nginx
 
-# Ver arquivo de log
-sudo tail -f /var/log/terminal404-backend.log
+# Ver portas em uso
+sudo ss -tulpn | grep -E ':(80|443|8000)'
 ```
 
-### Ver Logs do Nginx
+### Logs do Backend
 
 ```bash
-# Erros
-sudo tail -f /var/log/nginx/terminal404_error.log
+# Tempo real
+sudo tail -f /var/log/terminal404-backend.log
 
+# Erros
+sudo tail -f /var/log/terminal404-backend-error.log
+
+# Journalctl
+sudo journalctl -u terminal404-backend -f
+sudo journalctl -u terminal404-backend -n 100
+```
+
+### Logs do Nginx
+
+```bash
 # Acessos
 sudo tail -f /var/log/nginx/terminal404_access.log
+
+# Erros
+sudo tail -f /var/log/nginx/terminal404_error.log
 ```
 
 ### Reiniciar Serviços
@@ -790,15 +656,17 @@ sudo systemctl restart terminal404-backend
 # Nginx
 sudo systemctl restart nginx
 
+# Ambos de uma vez
+sudo systemctl restart terminal404-backend nginx
+
 # Ver status
-sudo systemctl status terminal404-backend
-sudo systemctl status nginx
+sudo systemctl status terminal404-backend nginx
 ```
 
 ### Atualizar o Site
 
 ```bash
-# 1. Conectar ao servidor
+# 1. Conectar
 ssh terminal404@SEU_IP
 
 # 2. Ir para o projeto
@@ -807,121 +675,212 @@ cd /var/www/terminal404
 # 3. Atualizar código (Git)
 git pull
 
-# 4. Frontend: Reinstalar dependências (se necessário)
+# 4. Instalar novas dependências (se houver)
 npm install
 
-# 5. Frontend: Rebuild
+# 5. Rebuild do frontend
 npm run build
 
-# 6. Backend: Reiniciar
-sudo systemctl restart terminal404-backend
+# 6. Atualizar dependências Python (se houver)
+cd backend
+source venv/bin/activate
+pip install -r requirements.txt  # Se você criou requirements.txt
+deactivate
 
-# 7. Nginx: Recarregar
+# 7. Reiniciar tudo
+sudo systemctl restart terminal404-backend
 sudo systemctl reload nginx
+
+# 8. Verificar
+sudo systemctl status terminal404-backend nginx
 ```
 
-### Backup do Projeto
+### Backup Completo
 
 ```bash
 # Criar backup
 cd ~
-sudo tar -czf terminal404-backup-$(date +%Y%m%d).tar.gz /var/www/terminal404
+sudo tar --exclude='node_modules' --exclude='backend/venv' --exclude='dist' \
+  -czf terminal404-backup-$(date +%Y%m%d-%H%M%S).tar.gz /var/www/terminal404
 
 # Listar backups
-ls -lh terminal404-backup-*.tar.gz
+ls -lh ~/terminal404-backup-*.tar.gz
 
-# Baixar para seu computador (do seu PC local):
+# Baixar para seu PC (do seu computador local):
 scp terminal404@SEU_IP:~/terminal404-backup-*.tar.gz ./
 ```
 
-### Monitorar Recursos do Servidor
+### Monitorar Recursos
 
 ```bash
-# Ver uso de CPU/RAM
+# CPU/RAM em tempo real
 htop
 # Pressione 'q' para sair
 
-# Ver espaço em disco
+# Espaço em disco
 df -h
 
-# Ver memória
+# Memória
 free -h
 
-# Ver processos Python
+# Processos do backend
 ps aux | grep python
 
-# Ver processos Nginx
+# Processos do Nginx
 ps aux | grep nginx
+
+# Ver conexões ativas
+sudo ss -tupn | grep -E ':(80|443|8000)'
 ```
 
----
+### Resolver Problemas
 
-## 🎉 Parabéns! Servidor Configurado com Sucesso!
+**❌ Erro: Porta 8000 em uso**
+```bash
+# Ver o que está usando a porta
+sudo ss -tulpn | grep :8000
 
-### 🌐 Seu site está no ar em:
-- **URL Principal:** https://terminal404.com.br
-- **API Health:** https://terminal404.com.br/api/health
-- **Contato:** https://terminal404.com.br/contato
-- **Solicitação:** https://terminal404.com.br/solicitacao
+# Matar processo específico
+sudo fuser -k 8000/tcp
 
-### 🔐 Segurança:
-- ✅ SSL/HTTPS ativo (Let's Encrypt)
-- ✅ Firewall configurado (UFW)
-- ✅ Usuário não-root
-- ✅ Serviços isolados
+# Reiniciar backend
+sudo systemctl restart terminal404-backend
+```
 
-### 🚀 Serviços Automáticos:
-- ✅ Backend inicia automaticamente no boot
-- ✅ Nginx inicia automaticamente
-- ✅ Certificado SSL renova automaticamente
-
-### 📧 Emails Funcionando:
-- ✅ Formulário de contato → `terminallocal404@gmail.com`
-- ✅ Formulário de solicitação → `terminallocal404@gmail.com`
-
----
-
-## 🆘 Problemas Comuns
-
-### ❌ Site não carrega
+**❌ Site não carrega**
 ```bash
 sudo systemctl status nginx
 sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-### ❌ Erro 502 Bad Gateway
+**❌ Erro 502 Bad Gateway**
 ```bash
+# Backend provavelmente está parado
 sudo systemctl status terminal404-backend
 sudo journalctl -u terminal404-backend -n 50
 sudo systemctl restart terminal404-backend
 ```
 
-### ❌ Formulários não enviam
+**❌ Formulários não enviam**
 ```bash
-# Verificar logs do backend
+# Verificar logs
 sudo tail -f /var/log/terminal404-backend.log
 
-# Verificar arquivo .env
+# Verificar .env
 cat /var/www/terminal404/backend/.env
 
-# Testar manualmente
+# Testar API manualmente
 curl -X POST https://terminal404.com.br/api/contact \
   -H "Content-Type: application/json" \
-  -d '{"name":"Teste","email":"teste@example.com","message":"Teste de envio"}'
+  -d '{"name":"Teste","email":"teste@example.com","message":"Teste"}'
 ```
 
-### ❌ SSL não funciona
+**❌ SSL não funciona**
 ```bash
 # Renovar certificado
 sudo certbot renew
 sudo systemctl reload nginx
 
-# Ver status do certificado
+# Ver certificados instalados
 sudo certbot certificates
 ```
 
 ---
 
+## 🚀 SCRIPT DE DEPLOY AUTOMATIZADO (OPCIONAL)
+
+Crie um script para automatizar o deploy:
+
+```bash
+nano /var/www/terminal404/deploy.sh
+```
+
+**Cole este conteúdo:**
+
+```bash
+#!/bin/bash
+
+echo "🚀 Iniciando deploy do Terminal_404..."
+
+# Cores
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Ir para o diretório
+cd /var/www/terminal404
+
+# 1. Atualizar código
+echo "📥 Atualizando código..."
+git pull || { echo -e "${RED}❌ Erro ao atualizar código${NC}"; exit 1; }
+
+# 2. Frontend
+echo "🎨 Instalando dependências do frontend..."
+npm install || { echo -e "${RED}❌ Erro ao instalar dependências${NC}"; exit 1; }
+
+echo "🔨 Fazendo build do frontend..."
+npm run build || { echo -e "${RED}❌ Erro ao fazer build${NC}"; exit 1; }
+
+# 3. Backend (se houver requirements.txt)
+if [ -f backend/requirements.txt ]; then
+    echo "🐍 Atualizando dependências do backend..."
+    cd backend
+    source venv/bin/activate
+    pip install -r requirements.txt
+    deactivate
+    cd ..
+fi
+
+# 4. Reiniciar serviços
+echo "🔄 Reiniciando backend..."
+sudo systemctl restart terminal404-backend
+
+echo "🔄 Recarregando Nginx..."
+sudo systemctl reload nginx
+
+# 5. Verificar status
+echo "✅ Verificando serviços..."
+sudo systemctl is-active --quiet terminal404-backend && echo -e "${GREEN}✅ Backend OK${NC}" || echo -e "${RED}❌ Backend FALHOU${NC}"
+sudo systemctl is-active --quiet nginx && echo -e "${GREEN}✅ Nginx OK${NC}" || echo -e "${RED}❌ Nginx FALHOU${NC}"
+
+echo -e "${GREEN}🎉 Deploy concluído!${NC}"
+```
+
+**Dar permissão:**
+```bash
+chmod +x /var/www/terminal404/deploy.sh
+```
+
+**Usar:**
+```bash
+cd /var/www/terminal404
+./deploy.sh
+```
+
+---
+
+## 🎉 PRONTO! SEU SITE ESTÁ NO AR!
+
+### 🌐 URLs:
+- **Site:** https://terminal404.com.br
+- **API Health:** https://terminal404.com.br/api/health
+- **Contato:** https://terminal404.com.br/contato
+- **Solicitação:** https://terminal404.com.br/solicitacao
+
+### ✅ Serviços Rodando:
+- ✅ Frontend React (Nginx)
+- ✅ Backend FastAPI (Systemd)
+- ✅ SSL/HTTPS (Let's Encrypt)
+- ✅ Firewall (UFW)
+
+### 🔄 Automático:
+- ✅ Backend inicia no boot
+- ✅ Nginx inicia no boot
+- ✅ SSL renova automaticamente
+- ✅ Processos antigos são mortos antes de reiniciar
+
+---
+
 **Desenvolvido por Terminal_404**  
-**Manual v1.0** | Ubuntu 25.10 x64 | 22/02/2026
+**Manual v2.0** | Ubuntu 25.10 x64 | 22/02/2026
