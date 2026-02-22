@@ -292,7 +292,7 @@ def format_project_email(data: ProjectRequest) -> str:
             
             <div class="section">
                 <div class="section-title">⚙️ Especificações Técnicas</div>
-                {f'<div class="field"><div class="label">Tecnologias:</div><div class="tech-stack">{"".join([f\'<span class="tech-badge">{sanitize_html(tech)}</span>\' for tech in data.tech_stack])}</div></div>' if data.tech_stack else '<div class="field"><div class="value">Não especificado</div></div>'}
+                {('<div class="field"><div class="label">Tecnologias:</div><div class="tech-stack">' + "".join([f'<span class="tech-badge">{sanitize_html(tech)}</span>' for tech in data.tech_stack]) + '</div></div>') if data.tech_stack else '<div class="field"><div class="value">Não especificado</div></div>'}
                 {f'<div class="field"><div class="label">Prazo:</div><div class="value">{sanitize_html(data.deadline)}</div></div>' if data.deadline else ''}
                 {f'<div class="field"><div class="label">Orçamento:</div><div class="value">{sanitize_html(data.budget)}</div></div>' if data.budget else ''}
             </div>
