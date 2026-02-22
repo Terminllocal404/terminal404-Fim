@@ -1,8 +1,5 @@
 import { motion } from 'motion/react';
 import { Users, Code, Database, Layout, GitBranch, Server } from 'lucide-react';
-import foundersXueheImg from 'figma:asset/b4e86e978f464fe8fe0f2fe9654a3e31d0421a32.png';
-import foundersGriffithImg from 'figma:asset/c3450cccfe9fde1adaf6b8cb414376e4745aebb0.png';
-import foundersLauferistorImg from 'figma:asset/4a24cfb48dbe3315409300798348bb0b6af2a7a7.png';
 
 export function Team() {
   const founders = [
@@ -10,7 +7,7 @@ export function Team() {
       name: 'xuehe',
       role: 'CEO & Backend Lead',
       title: 'Fundador & Arquiteto de Sistemas',
-      image: foundersXueheImg,
+      image: 'https://ancient-copper-6iysugv0ez.edgeone.app/1.jpg',
       responsibilities: [
         'Administração completa do projeto',
         'Gestão de clientes e reuniões estratégicas',
@@ -26,7 +23,7 @@ export function Team() {
       name: 'Griffith',
       role: 'Frontend Lead',
       title: 'Fundador & Especialista Frontend',
-      image: foundersGriffithImg,
+      image: 'https://low-apricot-toxmvzecmd.edgeone.app/2.png',
       responsibilities: [
         'Desenvolvimento de interfaces modernas',
         'Arquitetura Frontend',
@@ -41,7 +38,7 @@ export function Team() {
       name: 'Lauferistor',
       role: 'Frontend Lead',
       title: 'Fundador & Especialista Frontend',
-      image: foundersLauferistorImg,
+      image: 'https://voluminous-peach-243v1ioo1k.edgeone.app/3.jpg',
       responsibilities: [
         'Desenvolvimento de interfaces responsivas',
         'Implementação de componentes',
