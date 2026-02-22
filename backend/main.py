@@ -57,7 +57,7 @@ SMTP_CONFIG = {
     "host": "smtp.gmail.com",
     "port": 587,
     "email": "terminallocal404@gmail.com",
-    "password": "123456",  # ⚠️ ATENÇÃO: Trocar por senha real ou usar variáveis de ambiente
+    "password": "ldyq ybjn wbzp afnr",  # Senha de app do Gmail configurada
     "recipient": "terminallocal404@gmail.com"
 }
 
