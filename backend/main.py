@@ -19,6 +19,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import html
+import socket
 
 # Configuração de Logging
 logging.basicConfig(
@@ -439,4 +440,24 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    def find_free_port(start_port=8000, max_attempts=10):
+        """Encontra uma porta livre começando pela start_port"""
+        for port in range(start_port, start_port + max_attempts):
+            try:
+                # Tenta criar um socket na porta
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(('0.0.0.0', port))
+                    logger.info(f"✅ Porta {port} disponível")
+                    return port
+            except OSError:
+                logger.warning(f"⚠️ Porta {port} em uso, tentando próxima...")
+                continue
+        
+        raise RuntimeError(f"Nenhuma porta disponível entre {start_port} e {start_port + max_attempts}")
+    
+    # Encontrar porta livre
+    port = find_free_port(8000)
+    
+    logger.info(f"🚀 Iniciando Terminal_404 API na porta {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -616,7 +616,15 @@ Type=simple
 User=terminal404
 WorkingDirectory=/var/www/terminal404/backend
 Environment="PATH=/var/www/terminal404/backend/venv/bin"
+
+# Matar processos antigos na porta 8000 antes de iniciar
+ExecStartPre=/bin/sh -c 'fuser -k 8000/tcp || true'
+ExecStartPre=/bin/sleep 2
+
+# Iniciar o backend
 ExecStart=/var/www/terminal404/backend/venv/bin/python main.py
+
+# Reiniciar automaticamente se falhar
 Restart=always
 RestartSec=10
 
