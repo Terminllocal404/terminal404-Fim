@@ -27,7 +27,7 @@ Antes de começar, tenha em mãos:
 - **IP do Servidor:** Ex: `165.227.123.45`
 - **Domínio:** Ex: `terminal404.com.br`
 - **Email:** `terminallocal404@gmail.com`
-- **Senha de App Gmail:** (Você configurará depois)
+- **Senha de App Gmail:** `oxii jedf rkav ubgz`
 
 ---
 
@@ -202,15 +202,8 @@ nano /var/www/terminal404/backend/config.php
 **Encontre a linha 12 e substitua `1234567` pela sua senha de app do Gmail:**
 
 ```php
-define('SMTP_PASSWORD', 'SUA_SENHA_DE_APP_AQUI');
+define('SMTP_PASSWORD', 'oxii jedf rkav ubgz');
 ```
-
-**⚠️ Como obter senha de app do Gmail:**
-1. Acesse: https://myaccount.google.com/security
-2. Ative a verificação em 2 etapas
-3. Vá em "Senhas de app"
-4. Crie uma senha para "Outro (Terminal_404)"
-5. Copie a senha gerada (16 caracteres sem espaços)
 
 **Salvar:** `Ctrl + O` → `Enter` → `Ctrl + X`
 
