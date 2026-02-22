@@ -337,11 +337,12 @@ async def root():
     }
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     """Verifica saúde da API"""
     return {
-        "status": "healthy",
+        "status": "online",
+        "message": "Terminal_404 API Running",
         "timestamp": datetime.now().isoformat()
     }
 
