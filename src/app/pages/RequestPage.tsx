@@ -35,6 +35,25 @@ export function RequestPage() {
     setIsSubmitting(true);
     setError('');
 
+    // Validações do frontend antes de enviar
+    if (!formData.project_type) {
+      setError('Por favor, selecione um tipo de projeto.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.project_title.length < 5) {
+      setError('O título do projeto deve ter no mínimo 5 caracteres.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.project_description.length < 20) {
+      setError('A descrição do projeto deve ter no mínimo 20 caracteres.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:8000/api/project-request', {
         method: 'POST',
@@ -67,10 +86,25 @@ export function RequestPage() {
           setIsSubmitted(false);
         }, 6000);
       } else {
-        setError(data.error || 'Erro ao enviar solicitação. Tente novamente.');
+        // Melhor tratamento de erros de validação
+        if (response.status === 422) {
+          const errorDetails = data.detail || [];
+          if (Array.isArray(errorDetails) && errorDetails.length > 0) {
+            const errorMessages = errorDetails.map((err: any) => {
+              const field = err.loc?.[1] || 'campo';
+              const msg = err.msg || 'inválido';
+              return `${field}: ${msg}`;
+            }).join('; ');
+            setError(`Erro de validação: ${errorMessages}`);
+          } else {
+            setError('Erro de validação. Verifique os campos obrigatórios e tente novamente.');
+          }
+        } else {
+          setError(data.error || 'Erro ao enviar solicitação. Tente novamente.');
+        }
       }
     } catch (err) {
-      setError('Erro de conexão. Verifique se o servidor backend está rodando.');
+      setError('Erro de conexão. Verifique se o servidor backend está rodando na porta 8000.');
       console.error('Erro:', err);
     } finally {
       setIsSubmitting(false);
