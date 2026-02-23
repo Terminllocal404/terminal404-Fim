@@ -217,7 +217,7 @@ Content-Type: application/json
 Edite o arquivo `config.php` (linha 12):
 
 ```php
-define('SMTP_PASSWORD', 'sua senha aqui');
+define('SMTP_PASSWORD', 'oxii jedf rkav ubgz');  // ← Senha atual configurada
 ```
 
 **✅ Senha já configurada:** `oxii jedf rkav ubgz`
