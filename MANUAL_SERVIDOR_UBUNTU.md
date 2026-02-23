@@ -647,35 +647,13 @@ ls -la /var/www/terminal404/backend/
 
 **❌ Formulários não enviam**
 ```bash
-# Verificar logs
-sudo tail -f /var/www/terminal404/backend/logs/api.log
+# Verificar configuração do Nginx
+sudo nginx -t
 
-# Verificar senha de email
-grep SMTP_PASSWORD /var/www/terminal404/backend/config.php
+# Verificar permissões do backend
+ls -la /var/www/terminal404/backend/
 
-# Testar API manualmente
-curl -X POST https://terminal404.com.br/api/contact \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Teste","email":"teste@example.com","message":"Teste de mensagem com mais de 10 caracteres"}'
-```
-
-**❌ SSL não funciona**
-```bash
-# Renovar certificado
-sudo certbot renew
-sudo systemctl reload nginx
-
-# Ver certificados instalados
-sudo certbot certificates
-```
-
-**❌ Permissões negadas**
-```bash
-# Corrigir permissões do backend
-sudo chown -R www-data:www-data /var/www/terminal404/backend
-sudo chmod 755 /var/www/terminal404/backend
-sudo chmod 755 /var/www/terminal404/backend/logs
-sudo chmod 644 /var/www/terminal404/backend/*.php
+# Deve mostrar www-data como dono
 ```
 
 ---
